@@ -2,7 +2,7 @@
   <artifact type="jar" name="cloud:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/cloud_jar</output-path>
     <root id="archive" name="cloud.jar">
-      <element id="module-output" name="cloud" />
+      <element id="module-output" name="Cloud_Computing_Homework" />
     </root>
   </artifact>
 </component>
