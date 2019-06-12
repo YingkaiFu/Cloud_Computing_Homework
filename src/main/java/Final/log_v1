@@ -1,0 +1,35 @@
+File System Counters
+		FILE: Number of bytes read=6551322578
+		FILE: Number of bytes written=10855634260
+		FILE: Number of read operations=0
+		FILE: Number of large read operations=0
+		FILE: Number of write operations=0
+	Map-Reduce Framework
+		Map input records=10000000
+		Map output records=10000000
+		Map output bytes=160000000
+		Map output materialized bytes=180003000
+		Input split bytes=10392
+		Combine input records=0
+		Combine output records=0
+		Reduce input groups=100000
+		Reduce shuffle bytes=180003000
+		Reduce input records=10000000
+		Reduce output records=10000000
+		Spilled Records=20000000
+		Shuffled Maps =500
+		Failed Shuffles=0
+		Merged Map outputs=500
+		GC time elapsed (ms)=3162
+		Total committed heap usage (bytes)=53699674112
+	Shuffle Errors
+		BAD_ID=0
+		CONNECTION=0
+		IO_ERROR=0
+		WRONG_LENGTH=0
+		WRONG_MAP=0
+		WRONG_REDUCE=0
+	File Input Format Counters
+		Bytes Read=97892890
+	File Output Format Counters
+		Bytes Written=88579602

@@ -11,7 +11,7 @@ public class RadnomTxtFileCreator {
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
         int numOfFiles = 100;
-        int numOfRecorders = 1000;
+        int numOfRecorders = 100000;
         String uri = "files";
         FileOutputStream fout = null;
         Random ra = new Random();
@@ -21,7 +21,7 @@ public class RadnomTxtFileCreator {
                 fout = new FileOutputStream(new File(uri + "/file" + i));
                 List<String> list = new ArrayList<String>();
                 for (int j = 0; j < numOfRecorders; j++)
-                    list.add(ra.nextInt(numOfRecorders) + 1 + "\t" + "the recorder #" + j + " in file#" + i);
+                    list.add(ra.nextInt(numOfRecorders) + 1 + ", " + ra.nextInt(numOfFiles));
                 PrintStream pStream = new PrintStream(new BufferedOutputStream(fout));
                 for (String str : list) {
                     pStream.println(str);
