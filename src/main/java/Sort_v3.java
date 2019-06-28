@@ -5,7 +5,6 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
@@ -15,17 +14,18 @@ import java.io.IOException;
 public class Sort_v3 {
     public static void main(String[] args) throws Exception {
         Configuration configuration = new Configuration();
-        Job job = new Job(configuration, "Basic_Sort");
+        Job job = new Job(configuration, "Secondly_Sort");
         job.setJarByClass(Sort_v3.class);
 
         job.setMapperClass(Sort_v3.mapper.class);
-        job.setMapOutputKeyClass(LongWritable.class);
-        job.setMapOutputValueClass(LongWritable.class);
         job.setReducerClass(Sort_v3.reducer.class);
-        job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(LongWritable.class);
-        job.setPartitionerClass(Sort_v3.WordPartitioner.class);
-        job.setNumReduceTasks(5);
+
+        job.setMapOutputKeyClass(DoubleData.class);
+        job.setMapOutputValueClass(LongWritable.class);
+
+        job.setOutputKeyClass(DoubleData.class);
+        job.setOutputValueClass(Text.class);
+        job.setGroupingComparatorClass(DoubleGroupingComparator.class);
 
         FileInputFormat.addInputPath(job, new Path(args[0]));
         Path path = new Path(args[1]);
@@ -38,38 +38,35 @@ public class Sort_v3 {
     }
 
 
-    public static class mapper extends Mapper<LongWritable, Text, LongWritable, LongWritable> {
+    public static class mapper extends Mapper<LongWritable, Text, DoubleData, LongWritable> {
 
+        private DoubleData doubleData = new DoubleData();
+        private LongWritable v = new LongWritable();
         @Override
         protected void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             String[] words = value.toString().split(",");
-            context.write(new LongWritable(Long.valueOf(words[0].trim())), new LongWritable(Long.valueOf(words[1].trim())));
+            doubleData.setInt1(new LongWritable(Long.valueOf(words[0].trim())));
+            doubleData.setInt2(new LongWritable(Long.valueOf(words[1].trim())));
+            v.set(Long.valueOf(words[0].trim()));
+            context.write(doubleData, v);
         }
     }
 
-    public static class reducer extends Reducer<LongWritable, LongWritable, LongWritable, LongWritable> {
+    public static class reducer extends Reducer<DoubleData, LongWritable, LongWritable, Text> {
+        StringBuilder sb = new StringBuilder();
+        Text k = new Text();
         @Override
-        protected void reduce(LongWritable key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+        protected void reduce(DoubleData key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+            sb.delete(0, sb.length());
             for (LongWritable value : values) {
-                context.write(key, value);
+                sb.append(value.toString());
+                sb.append(",");
             }
-        }
-    }
-
-    public static class WordPartitioner extends Partitioner<LongWritable, LongWritable> {
-
-        @Override
-        public int getPartition(LongWritable text, LongWritable longWritable, int i) {
-            long value = text.get();
-            if (value <= 20000) {
-                return 0;
-            } else if (value <= 40000) {
-                return 1;
-            } else if (value <= 60000) {
-                return 2;
-            } else if (value <= 80000) {
-                return 3;
-            } else return 4;
+            if (sb.length() > 0) {
+                sb.deleteCharAt(sb.length() - 1);
+            }
+            k.set(sb.toString());
+            context.write(key.getInt2(), k);
         }
     }
 }

@@ -1,53 +1,44 @@
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
+import org.apache.hadoop.mapreduce.lib.partition.InputSampler;
+import org.apache.hadoop.mapreduce.lib.partition.TotalOrderPartitioner;
 
 import java.io.IOException;
 
-public class Sort_Basic extends Configured implements Tool {
+public class Sort_Basic_Partitional {
     public static void main(String[] args) throws Exception {
-        long start = System.currentTimeMillis();
-        int exitCode = ToolRunner.run(new Sort_Basic(), args);
-        long end = System.currentTimeMillis();
-        System.out.println("Job finished in" + (end - start) + "ms");
-        System.exit(exitCode);
-    }
-
-    public int run(String[] args) throws Exception {
         Configuration configuration = new Configuration();
-        Job job = new Job(configuration, "Basic_Sort");
-        job.setJarByClass(Sort_Basic.class);
+        Job job = new Job(configuration, "Basic_Sort Partition");
+        job.setJarByClass(Sort_Basic_Partitional.class);
 
-        job.setMapperClass(Sort_Basic.mapper.class);
+        job.setMapperClass(Sort_Basic_Partitional.mapper.class);
         job.setMapOutputKeyClass(LongWritable.class);
         job.setMapOutputValueClass(LongWritable.class);
-        job.setReducerClass(Sort_Basic.reducer.class);
+        job.setReducerClass(Sort_Basic_Partitional.reducer.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(LongWritable.class);
-        job.setPartitionerClass(WordPartitioner.class);
         job.setNumReduceTasks(5);
-
         FileInputFormat.setInputPaths(job, new Path(args[0]));
         Path path = new Path(args[1]);
         FileSystem fs = FileSystem.getLocal(configuration);
         if (fs.exists(path)) {
             fs.delete(path, true);
         }
+        TotalOrderPartitioner.setPartitionFile(job.getConfiguration(), new Path(args[2]));
+        InputSampler.Sampler<LongWritable, LongWritable> sampler = new InputSampler.RandomSampler<LongWritable, LongWritable>(0.1, 10000, 5);
+        InputSampler.writePartitionFile(job, sampler);
+        job.setPartitionerClass(TotalOrderPartitioner.class);
+
         FileOutputFormat.setOutputPath(job, path);
         System.exit(job.waitForCompletion(true) ? 0 : 1);
-
-        return 0;
     }
 
 
@@ -69,20 +60,4 @@ public class Sort_Basic extends Configured implements Tool {
         }
     }
 
-    public static class WordPartitioner extends Partitioner<LongWritable, LongWritable> {
-
-        @Override
-        public int getPartition(LongWritable text, LongWritable longWritable, int i) {
-            long value = text.get();
-            if (value <= 20000) {
-                return 0;
-            } else if (value <= 40000) {
-                return 1;
-            } else if (value <= 60000) {
-                return 2;
-            } else if (value <= 80000) {
-                return 3;
-            } else return 4;
-        }
-    }
 }

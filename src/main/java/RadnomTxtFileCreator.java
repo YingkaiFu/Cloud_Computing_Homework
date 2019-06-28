@@ -21,7 +21,7 @@ public class RadnomTxtFileCreator {
                 fout = new FileOutputStream(new File(uri + "/file" + i));
                 List<String> list = new ArrayList<String>();
                 for (int j = 0; j < numOfRecorders; j++)
-                    list.add(ra.nextInt(numOfRecorders) + 1 + ", " + ra.nextInt(numOfFiles));
+                    list.add(ra.nextInt(numOfRecorders) + 1 + "," + ra.nextInt(numOfFiles));
                 PrintStream pStream = new PrintStream(new BufferedOutputStream(fout));
                 for (String str : list) {
                     pStream.println(str);
